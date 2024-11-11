@@ -20,8 +20,12 @@ public class InstallVerticle extends AbstractVerticle {
 
     private void pickupAppForInstallation(Message<Object> message) {
         System.out.println("Picked up app for installation: " + message.body());
-        installService.installApp((Integer) message.body()).onSuccess(v -> {
+        installService.installApp((Integer) message.body())
+            .onSuccess(v -> {
             System.out.println("Successfully installed app: " + message.body());
-        });
+        }).onFailure(err -> {
+            // Retry this app
+                System.out.println("Installation failed for app: " + message.body() + " reason: " + err.getMessage());
+            });
     }
 }

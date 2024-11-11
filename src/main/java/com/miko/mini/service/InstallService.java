@@ -39,17 +39,19 @@ public class InstallService {
         processingFuture.onComplete(ar -> {
             if (ar.succeeded()) {
                 repository.updateAppInstallStatus(id, AppState.COMPLETED)
-                    .onComplete(promise::handle);
+                    .onComplete(promise);
             } else {
                 repository.updateAppInstallStatus(id, AppState.ERROR)
-                    .onComplete(promise::handle);
+                    .onComplete(err -> {
+                        promise.fail("App installation failed");
+                    });
             }
         });
     }
 
     private Future<Void> dummyApiForInstallation() {
         if (Math.random() > 0.7) {
-            return Future.failedFuture("Installation failed");
+            return Future.failedFuture("Internal server error");
         } else {
             return Future.succeededFuture();
         }
