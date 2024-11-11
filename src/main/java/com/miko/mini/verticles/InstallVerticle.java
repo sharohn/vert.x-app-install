@@ -1,13 +1,13 @@
 package com.miko.mini.verticles;
 
+import com.miko.mini.constants.EventBusTopics;
 import com.miko.mini.service.InstallService;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
+import io.vertx.core.eventbus.Message;
 
 public class InstallVerticle extends AbstractVerticle {
 
-    private final InstallService installService;
+    private InstallService installService;
 
     public InstallVerticle(InstallService installService) {
         this.installService = installService;
@@ -15,20 +15,13 @@ public class InstallVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        startAppInstall();
+        vertx.eventBus().consumer(EventBusTopics.APP_INSTALL_TOPIC, this::pickupAppForInstallation);
     }
 
-    private void startAppInstall() {
-        installService.getRepository().fetchAllApps().onSuccess(this::installApp).onFailure(err -> {
-            System.err.println("Failed to fetch records: " + err.getMessage());
+    private void pickupAppForInstallation(Message<Object> message) {
+        System.out.println("Picked up app for installation: " + message.body());
+        installService.installApp((Integer) message.body()).onSuccess(v -> {
+            System.out.println("Successfully installed app: " + message.body());
         });
-    }
-
-    private void installApp(RowSet<Row> rows) {
-        for (Row row : rows) {
-            installService.installApp(1, row.getString("app_name"), row.getString("version"))
-                .onSuccess(v -> System.out.println("Installing app ID: " + row.getInteger("id") + " app_name: " +  row.getString("app_name") + " version: " + row.getString("version")))
-                .onFailure(err -> System.err.println("Failed to install app ID: " + row.getInteger("id") + " app_name: " +  row.getString("app_name") + " version: " + row.getString("version")));
-        }
     }
 }

@@ -25,9 +25,9 @@ public class DatabaseRepository {
             .mapEmpty();
     }
 
-    public Future<RowSet<Row>> insertAppProgressStatus(int robotId, String appName, String version) {
+    public Future<RowSet<Row>> scheduleAppForInstallation(int robotId, String appName, String version) {
         return client.preparedQuery("INSERT INTO install_progress (robot_id, app_name, version, app_state, retry_count)" +
                 "VALUES($1, $2, $3, $4, $5) RETURNING *;")
-            .execute(Tuple.of(robotId, appName, version, AppState.PICKEDUP.name(), 0));
+            .execute(Tuple.of(robotId, appName, version, AppState.SCHEDULED.name(), 0));
     }
 }

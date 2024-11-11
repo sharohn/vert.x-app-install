@@ -24,6 +24,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         DatabaseRepository repository = new DatabaseRepository(client);
         InstallService installService = new InstallService(repository);
 
+        vertx.deployVerticle(new MainVerticle(installService));
         vertx.deployVerticle(new InstallVerticle(installService));
     }
 }
